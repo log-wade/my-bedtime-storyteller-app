@@ -12,7 +12,7 @@ A website that lets visitors search for a book and have an AI voice agent read i
 1. **Clone and install**
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/my-bedtime-storyteller-app.git
+   git clone https://github.com/log-wade/my-bedtime-storyteller-app.git
    cd my-bedtime-storyteller-app
    npm install
    ```
@@ -42,6 +42,17 @@ A website that lets visitors search for a book and have an AI voice agent read i
 - **ElevenLabs** — text-to-speech ([@elevenlabs/elevenlabs-js](https://www.npmjs.com/package/@elevenlabs/elevenlabs-js))
 - **Gutendex** — Project Gutenberg book search and metadata
 - **Tailwind CSS** — styling
+
+## Live app
+
+**https://my-bedtime-storyteller-app.vercel.app**
+
+Book search works without an API key. To enable **Read to me** in production, add `ELEVENLABS_API_KEY` in [Vercel → Project → Settings → Environment Variables](https://vercel.com/logans-projects-8af184d7/my-bedtime-storyteller-app/settings/environment-variables).
+
+## Next steps (after setup)
+
+1. **Run locally** — `npm run dev`, then open [http://localhost:3000](http://localhost:3000). Book search works immediately; **Read to me** requires `ELEVENLABS_API_KEY` in `.env`.
+2. **Production voice** — In the Vercel project, add environment variable `ELEVENLABS_API_KEY` (same value as in `.env`) and redeploy so the voice agent works on the live site.
 
 ## API
 
