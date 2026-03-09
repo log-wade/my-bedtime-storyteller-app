@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthSessionProvider } from "@/components/providers";
+import { Nav } from "@/components/nav";
+import { PlayerProvider } from "@/contexts/PlayerContext";
+import MediaPlayer from "@/components/MediaPlayer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,9 +29,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100`}
       >
-        {children}
+        <AuthSessionProvider>
+          <PlayerProvider>
+            <Nav />
+            {children}
+            <MediaPlayer />
+          </PlayerProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

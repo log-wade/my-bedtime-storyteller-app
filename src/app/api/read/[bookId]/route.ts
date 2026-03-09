@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ElevenLabsClient } from "elevenlabs";
+import { auth } from "@/auth";
+import { getSubscriptionByEmail } from "@/lib/subscription";
 
 const GUTENDEX_URL = "https://gutendex.com/books";
 const MAX_CHARS = 4500; // safe chunk for ElevenLabs
@@ -23,6 +25,22 @@ export async function GET(
     return NextResponse.json(
       { error: "ELEVENLABS_API_KEY is not set" },
       { status: 503 }
+    );
+  }
+
+  const session = await auth();
+  const email = session?.user?.email;
+  if (!email) {
+    return NextResponse.json(
+      { error: "Sign in to listen" },
+      { status: 401 }
+    );
+  }
+  const { hasActiveSubscription } = await getSubscriptionByEmail(email);
+  if (!hasActiveSubscription) {
+    return NextResponse.json(
+      { error: "Subscription required. Start a 7-day free trial on the Pricing page." },
+      { status: 403 }
     );
   }
 
