@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePlayer } from "@/contexts/PlayerContext";
 
 type BookResult = {
   id: number;
@@ -16,8 +18,8 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<BookResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [playingId, setPlayingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { loadAndPlay, currentBookId, isPlaying } = usePlayer();
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -43,31 +45,12 @@ export default function Home() {
     }
   }
 
-  async function handleRead(bookId: number) {
-    if (playingId === bookId) return;
-    setPlayingId(bookId);
+  async function handleRead(bookId: number, title: string) {
+    if (currentBookId === bookId && isPlaying) return;
     setError(null);
     try {
-      const res = await fetch(`/api/read/${bookId}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Could not start reading");
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
-        setPlayingId(null);
-      };
-      audio.onerror = () => {
-        URL.revokeObjectURL(url);
-        setPlayingId(null);
-        setError("Playback failed");
-      };
-      await audio.play();
+      await loadAndPlay(bookId, title);
     } catch (err) {
-      setPlayingId(null);
       setError(err instanceof Error ? err.message : "Could not play audio");
     }
   }
@@ -125,7 +108,10 @@ export default function Home() {
                   key={book.id}
                   className="flex gap-4 rounded-xl border border-slate-700/80 bg-slate-800/50 p-4 transition hover:border-slate-600"
                 >
-                  <div className="h-24 w-16 shrink-0 overflow-hidden rounded-md bg-slate-700">
+                  <Link
+                    href={`/book/${book.id}`}
+                    className="h-24 w-16 shrink-0 overflow-hidden rounded-md bg-slate-700"
+                  >
                     {book.coverUrl ? (
                       <Image
                         src={book.coverUrl}
@@ -140,26 +126,40 @@ export default function Home() {
                         No cover
                       </div>
                     )}
-                  </div>
+                  </Link>
                   <div className="min-w-0 flex-1">
                     <h2 className="font-semibold text-white line-clamp-2">
-                      {book.title}
+                      <Link
+                        href={`/book/${book.id}`}
+                        className="hover:text-amber-400 transition-colors"
+                      >
+                        {book.title}
+                      </Link>
                     </h2>
                     <p className="mt-0.5 text-sm text-slate-400">
                       {book.authors.map((a) => a.name).join(", ") || "Unknown author"}
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => handleRead(book.id)}
-                      disabled={playingId !== null && playingId !== book.id}
-                      className="mt-2 inline-flex items-center gap-2 rounded-md bg-amber-500/90 px-3 py-1.5 text-sm font-medium text-slate-900 hover:bg-amber-400 disabled:opacity-50"
-                    >
-                      {playingId === book.id ? (
-                        <>Reading…</>
-                      ) : (
-                        <>Read to me</>
-                      )}
-                    </button>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <Link
+                        href={`/book/${book.id}`}
+                        className="text-sm text-slate-400 hover:text-amber-400 transition-colors"
+                      >
+                        View details
+                      </Link>
+                      <span className="text-slate-600">·</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRead(book.id, book.title)}
+                        disabled={currentBookId !== null && currentBookId !== book.id}
+                        className="inline-flex items-center gap-2 rounded-md bg-amber-500/90 px-3 py-1.5 text-sm font-medium text-slate-900 hover:bg-amber-400 disabled:opacity-50"
+                      >
+                        {currentBookId === book.id && isPlaying ? (
+                          <>Reading…</>
+                        ) : (
+                          <>Read to me</>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}
